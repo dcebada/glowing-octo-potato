@@ -39,7 +39,7 @@
               inherit inputs;
               unstable = pkgsUnstable;
             };
-            users.daniel = import ./home/daniel/home.nix;
+            home-manager.users.daniel = import ./home/daniel/home.nix;
           }
         ];
       };
