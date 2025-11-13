@@ -14,7 +14,7 @@ in
   home.packages = with pkgs; [
     # Terminal y fuente
     unstable.ghostty  # Terminal moderno y rápido para Wayland
-    nerd-fonts.victor-mono  # Fuente monoespaciada con iconos Nerd Fonts
+    nerd-fonts-victor-mono  # Fuente monoespaciada con iconos Nerd Fonts
     
     # Gestor de versiones
     unstable.mise  # Gestor de versiones de herramientas (rtx)
