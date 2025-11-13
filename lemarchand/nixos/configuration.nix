@@ -243,9 +243,10 @@ in
     alsa.support32Bit = true;
     pulse.enable = true;
     jack.enable = true;
-    # Soporte para cámaras web (v4l2)
-    video.enable = true;
   };
+  
+  # Soporte para cámaras web (v4l2) - se instala automáticamente con pipewire
+  # El módulo uvcvideo ya está cargado en boot.kernelModules
 
   #################################################################
   # 9. GPU AMD (Radeon RX 680M)
