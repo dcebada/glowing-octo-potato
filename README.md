@@ -306,7 +306,16 @@ Edita `$XDG_CONFIG_HOME/swww/wallpaper-config` para cambiar el modo por defecto:
 
 **Nota:** El sistema cambia automáticamente el wallpaper cada hora cuando está en modo `time`.
 
-### 14. Reiniciar
+### 14. Configurar Autologin y Boot Splash
+
+El sistema está configurado para:
+- **Autologin automático** - El usuario `daniel` inicia sesión automáticamente en TTY1
+- **Hyprland autostart** - Hyprland se inicia automáticamente al hacer login
+- **Plymouth boot splash** - Muestra un logo durante el arranque
+
+**Nota:** Si necesitas deshabilitar el autologin por seguridad, edita `nixos/configuration.nix` y comenta la línea `services.getty.autologinUser = "daniel";`
+
+### 15. Reiniciar
 
 ```bash
 sudo reboot
@@ -314,8 +323,10 @@ sudo reboot
 
 Al arrancar, deberías poder:
 1. Desbloquear el disco con tu llave U2F (o contraseña de respaldo)
-2. Iniciar sesión con tu llave U2F
-3. Usar `sudo` con tu llave U2F
+2. Ver el logo de Plymouth durante el arranque
+3. Iniciar sesión automáticamente (autologin)
+4. Hyprland se iniciará automáticamente
+5. Usar `sudo` con tu llave U2F
 
 ---
 
@@ -391,12 +402,34 @@ bluetooth → bluetoothctl
 - `Super + Print` - Captura pantalla completa
 - O desde terminal: `screenshot` y `screenshot-full`
 
-**Atajos de teclado en Hyprland:**
+**Atajos de teclado en Hyprland (estilo Omarchy):**
+
+**Aplicaciones:**
+- `Super + Return` - Abrir terminal (Ghostty)
+- `Super + D` - Abrir launcher (Wofi)
+- `Super + B` - Abrir Brave (navegador web)
 - `Super + E` - Abrir Ranger (gestor de archivos TUI)
 - `Super + A` - Abrir Pulsemixer (control de audio TUI)
 - `Super + U` - Abrir Bluetoothctl (control Bluetooth TUI)
+- `Super + Q` - Cerrar ventana activa
+- `Super + M` - Salir de Hyprland
+
+**Control del sistema:**
+- `Super + Shift + B` - Aumentar brillo
+- `Super + Ctrl + B` - Disminuir brillo
 - `Super + W` - Cambiar wallpaper a modo aleatorio
 - `Super + Shift + W` - Cambiar wallpaper a modo por hora
+- `Print` - Captura de área seleccionada
+- `Super + Print` - Captura de pantalla completa
+
+**Navegación de ventanas:**
+- `Super + ←/→/↑/↓` - Mover foco entre ventanas
+- `Super + H/J/K/L` - Redimensionar ventana activa
+
+**Workspaces:**
+- `Super + 1-9` - Cambiar a workspace 1-9
+- `Super + Shift + 1-9` - Mover ventana a workspace 1-9
+- `Super + mouse_down/up` - Cambiar workspace con mouse
 
 ### Neovim con LazyVim
 
@@ -566,6 +599,10 @@ Soporte completo para cámaras web Logitech mediante el módulo `uvcvideo`. La c
 **Monitor USB-C:**
 
 Los monitores USB-C con DisplayPort funcionan automáticamente. Ajusta la configuración de monitores en `~/.config/hypr/hyprland.conf` si es necesario.
+
+**Navegador web:**
+
+- **Brave** - Navegador basado en Chromium enfocado en privacidad y bloqueo de anuncios
 
 **Aplicaciones de comunicación:**
 

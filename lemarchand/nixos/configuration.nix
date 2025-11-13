@@ -23,6 +23,7 @@
   boot.kernelParams = [
     "quiet"
     "splash"
+    "logo"
     "amd_iommu=on"
     "iommu=pt"
     "elevator=none"
@@ -171,6 +172,7 @@
       "plugdev"
     ];
     shell = pkgs.fish;
+    # Autologin habilitado (se inicia automáticamente en TTY1)
   };
   security.sudo.wheelNeedsPassword = true;
 
@@ -309,6 +311,9 @@
 
     # Firewall
     ufw  # Uncomplicated Firewall
+
+    # Boot splash
+    plymouth  # Boot splash screen con logo
   ];
 
   #################################################################
@@ -338,6 +343,19 @@
     udisks2.enable = true;
   };
   systemd.services.systemd-udev-settle.enable = false;
+
+  #################################################################
+  # 15. Autologin y Plymouth (boot splash)
+  #################################################################
+  # Autologin para usuario daniel en TTY1
+  services.getty.autologinUser = "daniel";
+
+  # Plymouth boot splash con logo
+  boot.plymouth = {
+    enable = true;
+    theme = "bgrt";  # Usa el logo del firmware (si está disponible)
+    # Alternativamente, puedes usar "spinner" o crear un tema personalizado
+  };
 
   #################################################################
   # 13. UFW (Uncomplicated Firewall)

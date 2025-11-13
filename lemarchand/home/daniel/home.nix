@@ -56,6 +56,7 @@ in
     
     # Red y web
     curl  # Cliente HTTP/HTTPS
+    brave  # Navegador Brave (basado en Chromium, enfocado en privacidad)
     
     # Procesamiento de datos
     jq  # Procesador JSON
@@ -139,10 +140,16 @@ in
       end
     '';
     interactiveShellInit = ''
-      set -g fish_greeting ""
-      set -gx EDITOR nvim
-    '';
-  };
+        set -g fish_greeting ""
+        set -gx EDITOR nvim
+      '';
+      loginShellInit = ''
+        # Iniciar Hyprland automáticamente si estamos en TTY1 y no hay sesión gráfica activa
+        if test (tty) = "/dev/tty1"; and test -z "$WAYLAND_DISPLAY"; and test -z "$DISPLAY"
+          exec ${unstable.hyprland}/bin/Hyprland
+        end
+      '';
+    };
 
   # Instalar Fisher y plugins populares (usa estándar XDG)
   home.activation.installFisher = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -278,6 +285,15 @@ EOF
     mako.enable = true;
     swww.enable = true;
   };
+
+  #################################################################
+  # 11. Autostart de Hyprland
+  #################################################################
+  # Iniciar Hyprland automáticamente al iniciar sesión
+  # Esto se hace mediante un script en .xprofile o .zprofile
+  # pero en NixOS con autologin, se puede usar systemd user service
+  # Nota: Con autologin configurado, Hyprland se iniciará automáticamente
+  # desde el archivo .zprofile o .bash_profile del usuario
 
   #################################################################
   # 8. Git
