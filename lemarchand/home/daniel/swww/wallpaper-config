@@ -1,0 +1,4 @@
+# Modo de wallpaper dinámico
+# Opciones: "time" (cambia según hora del día) o "random" (aleatorio)
+MODE="time"
+

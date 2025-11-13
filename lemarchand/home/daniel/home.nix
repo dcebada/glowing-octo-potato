@@ -96,16 +96,7 @@ in
   #################################################################
   # 2. Ghostty
   #################################################################
-  xdg.configFile."ghostty/config.toml".text = ''
-    font = "VictorMono Nerd Font Italic 13"
-    cursor_style = "beam"
-    background = "#1e1e2e"
-    foreground = "#cdd6f4"
-    opacity = 0.95
-    scrollback_lines = 8000
-    enable_ligatures = true
-    true_color = true
-  '';
+  xdg.configFile."ghostty/config.toml".source = ./ghostty/config.toml;
 
   #################################################################
   # 3. Fish con Fisher y plugins
@@ -187,27 +178,14 @@ EOF
   xdg.configFile."waybar/config".source = ./waybar/config;
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
 
-  xdg.configFile."mako/config".text = ''
-    [global]
-    font = VictorMono Nerd Font 11
-    background-color = #1e1e2e
-    text-color = #cdd6f4
-    border-radius = 8
-    padding = 12
-    margin = 8
-    width = 350
-  '';
+  xdg.configFile."mako/config".source = ./mako/config;
 
   # Script para wallpapers dinámicos (usa estándar XDG)
   xdg.configFile."swww/wallpaper-dynamic.sh".source = ./scripts/wallpaper-dynamic.sh;
   xdg.configFile."swww/wallpaper-dynamic.sh".executable = true;
   
   # Configuración de wallpaper dinámico
-  xdg.configFile."swww/wallpaper-config".text = ''
-    # Modo de wallpaper dinámico
-    # Opciones: "time" (cambia según hora del día) o "random" (aleatorio)
-    MODE="time"
-  '';
+  xdg.configFile."swww/wallpaper-config".source = ./swww/wallpaper-config;
 
   # Crear directorio de wallpapers (usa estándar XDG)
   # Los wallpapers se colocan en $XDG_CONFIG_HOME/swww/wallpapers/

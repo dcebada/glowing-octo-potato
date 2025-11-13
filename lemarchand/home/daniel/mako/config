@@ -1,0 +1,9 @@
+[global]
+font = VictorMono Nerd Font 11
+background-color = #1e1e2e
+text-color = #cdd6f4
+border-radius = 8
+padding = 12
+margin = 8
+width = 350
+
