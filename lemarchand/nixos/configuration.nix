@@ -1,5 +1,27 @@
 { config, pkgs, lib, luksUuid ? "REPLACE-WITH-LUKS-UUID", efiUuid ? "REPLACE-WITH-EFI-UUID", ... }:
 
+let
+  # Opciones generales optimizadas para SSD NVMe rápido y CPU potente
+  btrfsOptions = [
+    "compress=zstd:3"  # Nivel 3: mejor compresión, Ryzen 9 puede manejarlo sin problemas
+    "ssd_spread"  # Optimización específica para SSD
+    "noatime"  # No actualizar tiempos de acceso (reduce escrituras)
+    "nodiratime"  # No actualizar tiempos de acceso en directorios
+    "space_cache=v2"  # Cache de espacio v2 (más eficiente)
+    "discard=async"  # TRIM asíncrono para NVMe (mejor rendimiento)
+    "commit=120"  # Commit cada 120 segundos (reduce I/O frecuente en NVMe rápido)
+  ];
+
+  # Opciones para /nix (sin compresión, ya que Nix store está comprimido)
+  btrfsNixOptions = [
+    "ssd_spread"
+    "noatime"
+    "nodiratime"
+    "space_cache=v2"
+    "discard=async"
+    "commit=120"
+  ];
+in
 {
   imports = [
     ./hardware-configuration.nix
@@ -86,27 +108,6 @@
   #################################################################
   # 3. Sistema de archivos Btrfs (optimizado para Ryzen 9 6900HX + Samsung NVMe)
   #################################################################
-  # Opciones generales optimizadas para SSD NVMe rápido y CPU potente
-  btrfsOptions = [
-    "compress=zstd:3"  # Nivel 3: mejor compresión, Ryzen 9 puede manejarlo sin problemas
-    "ssd_spread"  # Optimización específica para SSD
-    "noatime"  # No actualizar tiempos de acceso (reduce escrituras)
-    "nodiratime"  # No actualizar tiempos de acceso en directorios
-    "space_cache=v2"  # Cache de espacio v2 (más eficiente)
-    "discard=async"  # TRIM asíncrono para NVMe (mejor rendimiento)
-    "commit=120"  # Commit cada 120 segundos (reduce I/O frecuente en NVMe rápido)
-  ];
-
-  # Opciones para /nix (sin compresión, ya que Nix store está comprimido)
-  btrfsNixOptions = [
-    "ssd_spread"
-    "noatime"
-    "nodiratime"
-    "space_cache=v2"
-    "discard=async"
-    "commit=120"
-  ];
-
   fileSystems."/" = {
     device = "/dev/mapper/cryptroot";
     fsType = "btrfs";
