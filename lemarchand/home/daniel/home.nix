@@ -119,8 +119,8 @@ in
       cat = "bat";
       find = "fd";
       grep = "rg";
-      rebuild = "sudo nixos-rebuild switch --flake ~/glowing-octo-potato/lemarchand#lemarchand";
-      update = "cd ~/glowing-octo-potato/lemarchand && nix flake update";
+      rebuild = "sudo nixos-rebuild switch --flake $HOME/glowing-octo-potato/lemarchand#lemarchand";
+      update = "cd $HOME/glowing-octo-potato/lemarchand && nix flake update";
       screenshot = "grim -g (slurp) ~/Pictures/screenshot-(date +%Y%m%d-%H%M%S).png";
       screenshot-full = "grim ~/Pictures/screenshot-(date +%Y%m%d-%H%M%S).png";
       audio = "pulsemixer";
@@ -144,9 +144,10 @@ in
     '';
   };
 
-  # Instalar Fisher y plugins populares
+  # Instalar Fisher y plugins populares (usa estándar XDG)
   home.activation.installFisher = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    FISH_CONFIG_DIR="$HOME/.config/fish"
+    XDG_CONFIG_HOME="''${XDG_CONFIG_HOME:-$HOME/.config}"
+    FISH_CONFIG_DIR="$XDG_CONFIG_HOME/fish"
     FISHER_DIR="$FISH_CONFIG_DIR/functions"
     FISHER_PLUGINS_DIR="$FISH_CONFIG_DIR/fish_plugins"
     

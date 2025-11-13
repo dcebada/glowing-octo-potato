@@ -46,9 +46,10 @@
     "amdgpu"
     "radeon"
     "uvcvideo"
+    "fuse"
   ];
   boot.initrd.kernelModules = [ "amdgpu" "nvme" ];
-  boot.kernelModules = [ "kvm-amd" "uvcvideo" ];
+  boot.kernelModules = [ "kvm-amd" "uvcvideo" "ntfs3" "fuse" ];
   hardware.enableRedistributableFirmware = true;
 
   # Configuración para teclado Apple (hid_apple)
@@ -182,7 +183,6 @@
   environment.sessionVariables = {
     AMD_VULKAN_ICD = "RADV";
     RADV_PERFTEST = "gpl";
-    STEAM_COMPAT_CLIENT_INSTALL_PATH = "/home/daniel/.steam/steam";
   };
 
   #################################################################
@@ -286,6 +286,11 @@
     # Herramientas de impresión
     cups
     cups-filters
+
+    # Soporte para sistemas de archivos externos
+    ntfs3g  # NTFS (compatible con Windows)
+    exfatprogs  # exFAT (compatible con macOS y Windows)
+    fuse  # Sistema de archivos en espacio de usuario
   ];
 
   #################################################################
@@ -312,6 +317,7 @@
       SystemMaxUse=500M
       MaxRetentionSec=1week
     '';
+    udisks2.enable = true;
   };
   systemd.services.systemd-udev-settle.enable = false;
 

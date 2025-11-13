@@ -573,6 +573,24 @@ Los monitores USB-C con DisplayPort funcionan automáticamente. Ajusta la config
 - **Telegram Desktop** - Cliente de escritorio instalado
 - **Bitwarden** - Cliente de escritorio y CLI (`bw`) para gestión de secretos
 
+**Sistemas de archivos externos:**
+
+- **NTFS** - Soporte completo para particiones NTFS (compatible con Windows)
+- **exFAT** - Soporte completo para exFAT (compatible con macOS y Windows)
+- **Montaje automático** - udisks2 habilitado para montaje automático de dispositivos USB
+
+**Uso:**
+
+```bash
+# Montar manualmente una partición NTFS
+sudo mount -t ntfs-3g /dev/sdX1 /mnt/ntfs
+
+# Montar manualmente una partición exFAT
+sudo mount -t exfat /dev/sdX1 /mnt/exfat
+
+# Los dispositivos USB se montan automáticamente en /run/media/daniel/
+```
+
 ---
 
 ## 🛠️ Mantenimiento
