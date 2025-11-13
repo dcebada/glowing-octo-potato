@@ -219,7 +219,7 @@ in
   };
 
   #################################################################
-  # 6. Steam y Steam Controller
+  # 6. Steam y Controladores de Juego
   #################################################################
   programs.steam = {
     enable = true;
@@ -228,7 +228,8 @@ in
     extraCompatPackages = with pkgs; [ driversi686Linux.amdvlk ];
   };
   services.udev.extraRules = ''
-    # Steam Controller (permisos restringidos al grupo games)
+    # Controladores de juego (Steam Controller y otros gamepads)
+    # sc-controller y otros controladores necesitan acceso a uinput y hidraw
     SUBSYSTEM=="usb", ATTR{idVendor}=="28de", ATTR{idProduct}=="1102", MODE="0664", GROUP="games"
     KERNEL=="uinput", MODE="0660", GROUP="games", OPTIONS+="static_node=uinput"
     KERNEL=="xpad", MODE="0664", GROUP="games"

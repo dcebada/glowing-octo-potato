@@ -22,7 +22,7 @@ in
     
     # Gaming
     steam  # Plataforma de juegos
-    unstable.steamcontroller  # Soporte para Steam Controller
+    sc-controller  # Controlador alternativo para Steam Controller y otros gamepads
     
     # Entorno de escritorio (Hyprland stack)
     unstable.waybar  # Barra de estado para Wayland
