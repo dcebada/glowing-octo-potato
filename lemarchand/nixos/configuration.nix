@@ -41,6 +41,9 @@
     "zswap.compressor=zstd"
     "zswap.max_pool_percent=20"
     "zswap.zpool=z3fold"
+    # Optimizaciones de rendimiento del kernel
+    "nowatchdog"  # Desactivar watchdog para reducir overhead
+    "nohz_full=0-15"  # Nohz full para cores (mejor latencia, menos interrupciones)
   ];
 
   boot.initrd.availableKernelModules = [
@@ -264,6 +267,20 @@
     # Optimizaciones de I/O para NVMe
     "vm.dirty_writeback_centisecs" = 1500;  # 15 segundos (mejor para NVMe)
     "vm.dirty_expire_centisecs" = 3000;  # 30 segundos
+    # Optimizaciones de red (mejor throughput y latencia)
+    "net.core.rmem_max" = 134217728;  # 128MB buffer de recepción
+    "net.core.wmem_max" = 134217728;  # 128MB buffer de envío
+    "net.ipv4.tcp_rmem" = "4096 87380 134217728";  # TCP receive buffer
+    "net.ipv4.tcp_wmem" = "4096 65536 134217728";  # TCP send buffer
+    "net.core.netdev_max_backlog" = 5000;  # Mayor backlog para alta carga
+    "net.ipv4.tcp_fastopen" = 3;  # Habilitar TCP Fast Open
+    "net.ipv4.tcp_slow_start_after_idle" = 0;  # Desactivar slow start después de idle
+    # Optimizaciones de scheduler
+    "kernel.sched_migration_cost_ns" = 5000000;  # Reducir migración de procesos
+    "kernel.sched_autogroup_enabled" = 1;  # Habilitar autogroup (mejor para desktop)
+    # Optimizaciones de GPU AMD
+    "dev.radeon.modeset" = 1;
+    "dev.amdgpu.modeset" = 1;
   };
 
   #################################################################
@@ -434,8 +451,12 @@
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       ];
-      max-jobs = "auto";
-      cores = 0;
+      max-jobs = 16;  # Usar todos los cores del Ryzen 9 6900HX (8 cores, 16 threads)
+      cores = 16;  # Número de cores para builds paralelos
+      # Optimizaciones de build
+      builders-use-substitutes = true;  # Usar substituters en builders
+      keep-outputs = true;  # Mantener outputs para builds incrementales
+      keep-derivations = true;  # Mantener derivaciones para debugging
     };
     gc = {
       automatic = true;
