@@ -36,6 +36,11 @@
     # Optimizaciones adicionales para NVMe Samsung
     "nvme_core.io_timeout=4294967295"
     "nvme_core.max_retries=10"
+    # zswap: compresión de memoria antes de swap (mejora rendimiento)
+    "zswap.enabled=1"
+    "zswap.compressor=zstd"
+    "zswap.max_pool_percent=20"
+    "zswap.zpool=z3fold"
   ];
 
   boot.initrd.availableKernelModules = [
@@ -254,7 +259,7 @@
     "vm.dirty_ratio" = 10;
     "vm.dirty_background_ratio" = 5;
     # Optimizaciones para Btrfs y NVMe
-    "vm.swappiness" = 1;  # Reducir swap (SSD NVMe rápido)
+    "vm.swappiness" = 100;  # Aumentar para aprovechar zswap (compresión en RAM)
     "vm.vfs_cache_pressure" = 50;  # Cache de VFS balanceado
     # Optimizaciones de I/O para NVMe
     "vm.dirty_writeback_centisecs" = 1500;  # 15 segundos (mejor para NVMe)
