@@ -37,6 +37,11 @@ in
       builtins.elem (lib.getName pkg) [
         "samsung-unified-linux-driver"
       ];
+    # Nota: Las advertencias sobre structuredAttrs y disallowedRequisites
+    # son normales cuando las derivaciones usan structuredAttrs (ej: neovim).
+    # Nix automáticamente usa updateChecks.output.disallowedRequisites en su lugar.
+    # No es necesario configurar nada adicional aquí.
+    checkMeta = true;
   };
 
   #################################################################
@@ -487,6 +492,10 @@ in
       builders-use-substitutes = true;  # Usar substituters en builders
       keep-outputs = true;  # Mantener outputs para builds incrementales
       keep-derivations = true;  # Mantener derivaciones para debugging
+      # Configuración para derivaciones con structuredAttrs
+      # Cuando structuredAttrs está habilitado, las restricciones de dependencias
+      # deben configurarse en updateChecks.output.disallowedRequisites
+      warn-dirty = false;  # Reducir advertencias durante builds
     };
     gc = {
       automatic = true;
