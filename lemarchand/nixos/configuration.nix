@@ -30,7 +30,14 @@ in
   #################################################################
   # 0. Configuración de Nixpkgs
   #################################################################
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    # Permitir específicamente el driver de Samsung (unfree)
+    allowUnfreePredicate = pkg:
+      builtins.elem (lib.getName pkg) [
+        "samsung-unified-linux-driver"
+      ];
+  };
 
   #################################################################
   # 1. Configuración básica del sistema
