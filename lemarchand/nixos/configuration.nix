@@ -22,8 +22,6 @@ let
     "commit=120"
   ];
 
-  # Paquete UFW para uso en scripts de activación y servicios
-  ufwPackage = pkgs.ufw;
 in
 {
   imports = [
@@ -258,7 +256,31 @@ in
   networking = {
     hostName = "lemarchand";
     networkmanager.enable = true;
-    firewall.enable = false;
+    firewall = {
+      enable = true;
+      # Políticas por defecto: denegar entrada, permitir salida
+      # (esto es el comportamiento por defecto del firewall de NixOS)
+      
+      # Permitir CUPS (impresión) desde localhost y redes locales
+      allowedTCPPorts = [
+        631  # CUPS
+        27036  # Steam Remote Play
+        27031  # Steam Link
+      ];
+      allowedUDPPorts = [
+        631  # CUPS
+        27036  # Steam Remote Play
+        27031  # Steam Link
+      ];
+      
+      # Permitir CUPS desde redes locales (192.168.0.0/16 y 10.0.0.0/8)
+      # El firewall de NixOS permite conexiones desde cualquier origen por defecto
+      # cuando se abren puertos, pero podemos restringir si es necesario
+      # usando firewall.extraCommands o firewall.extraStopCommands
+      
+      # Steam ya está configurado en programs.steam con openFirewall
+      # pero lo incluimos explícitamente aquí para claridad
+    };
   };
 
   #################################################################
@@ -375,9 +397,6 @@ in
     exfatprogs  # exFAT (compatible con macOS y Windows)
     fuse  # Sistema de archivos en espacio de usuario
 
-    # Firewall
-    ufw  # Uncomplicated Firewall
-
     # Boot splash
     plymouth  # Boot splash screen con logo
   ];
@@ -417,48 +436,6 @@ in
     };
   };
   services.blueman.enable = false;
-
-  #################################################################
-  # 13. UFW (Uncomplicated Firewall)
-  #################################################################
-  systemd.services.ufw = {
-    description = "Uncomplicated Firewall";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${ufwPackage}/bin/ufw --force enable";
-    };
-  };
-
-  # Configurar UFW al activar el sistema
-  system.activationScripts.ufw = ''
-    # Configurar políticas por defecto
-    ${ufwPackage}/bin/ufw --force reset
-    ${ufwPackage}/bin/ufw default deny incoming
-    ${ufwPackage}/bin/ufw default allow outgoing
-    ${ufwPackage}/bin/ufw default deny routed
-
-    # Permitir CUPS (impresión) desde localhost
-    ${ufwPackage}/bin/ufw allow from 127.0.0.1 to any port 631 proto tcp
-    ${ufwPackage}/bin/ufw allow from 127.0.0.1 to any port 631 proto udp
-
-    # Permitir CUPS desde red local
-    ${ufwPackage}/bin/ufw allow from 192.168.0.0/16 to any port 631 proto tcp
-    ${ufwPackage}/bin/ufw allow from 10.0.0.0/8 to any port 631 proto tcp
-
-    # Permitir Steam Remote Play
-    ${ufwPackage}/bin/ufw allow 27036/udp
-    ${ufwPackage}/bin/ufw allow 27036/tcp
-
-    # Permitir Steam Link
-    ${ufwPackage}/bin/ufw allow 27031/udp
-    ${ufwPackage}/bin/ufw allow 27031/tcp
-
-    # Habilitar UFW
-    ${ufwPackage}/bin/ufw --force enable
-  '';
 
   #################################################################
   # 14. Autologin y Plymouth (boot splash)
