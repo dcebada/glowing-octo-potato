@@ -49,11 +49,44 @@ in
   #################################################################
   # 0.1. Fuentes del sistema
   #################################################################
-  # 25.05 (or later)
-  fonts.packages = with pkgs; [
-    nerd-fonts.fira-code
-    nerd-fonts.victor-mono
-  ];
+  # Configuración de fuentes según https://nixos.wiki/wiki/Fonts
+  fonts = {
+    enableDefaultPackages = true;  # Habilitar paquetes de fuentes por defecto
+    packages = with pkgs; [
+      # Fuentes base del sistema
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-emoji
+      liberation_ttf
+      
+      # Fuentes monoespaciadas
+      fira-code
+      fira-code-symbols
+      
+      # Fuentes adicionales
+      mplus-outline-fonts.githubRelease
+      dina-font
+      proggyfonts
+      
+      # Nerd Fonts (con iconos para terminales)
+      # Instalar fuentes Nerd Fonts específicas
+      # Nota: En algunas versiones de nixpkgs, los nombres pueden ser:
+      # - nerd-fonts-victor-mono, nerd-fonts-fira-code (paquetes individuales)
+      # - o usar nerd-fonts con override
+      nerd-fonts-victor-mono
+      nerd-fonts-fira-code
+    ];
+    
+    # Configuración de fontconfig (opcional)
+    fontconfig = {
+      enable = true;
+      defaultFonts = {
+        monospace = [ "VictorMono Nerd Font" "FiraCode Nerd Font" "Liberation Mono" ];
+        sansSerif = [ "Noto Sans" "Liberation Sans" ];
+        serif = [ "Noto Serif" "Liberation Serif" ];
+      };
+    };
+  };
 
   #################################################################
   # 1. Configuración básica del sistema
