@@ -258,8 +258,9 @@ EOF
   #################################################################
   # 7. Servicios de usuario
   #################################################################
+  # Nota: PipeWire está configurado como servicio del sistema en nixos/configuration.nix
+  # No necesita estar aquí como servicio de usuario
   services = {
-    pipewire.enable = true;
     mako.enable = true;
     swww.enable = true;
   };
