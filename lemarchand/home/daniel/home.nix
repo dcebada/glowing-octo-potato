@@ -11,10 +11,11 @@ in
   #################################################################
   # 1. Paquetes principales
   #################################################################
+  # Nota: Las fuentes están configuradas en nixos/configuration.nix (fonts.packages)
+  # para que estén disponibles a nivel de sistema
   home.packages = with pkgs; [
-    # Terminal y fuente
+    # Terminal
     unstable.ghostty  # Terminal moderno y rápido para Wayland
-    nerd-fonts-victor-mono  # Fuente monoespaciada con iconos Nerd Fonts
     
     # Gestor de versiones
     unstable.mise  # Gestor de versiones de herramientas (rtx)

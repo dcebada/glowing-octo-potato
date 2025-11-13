@@ -40,6 +40,13 @@ in
   };
 
   #################################################################
+  # 0.1. Fuentes del sistema
+  #################################################################
+  fonts.packages = with pkgs; [
+    nerd-fonts-victor-mono  # Fuente monoespaciada con iconos Nerd Fonts
+  ];
+
+  #################################################################
   # 1. Configuración básica del sistema
   #################################################################
   boot.loader = {
