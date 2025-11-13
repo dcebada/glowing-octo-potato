@@ -73,8 +73,8 @@ in
       # Nota: En algunas versiones de nixpkgs, los nombres pueden ser:
       # - nerd-fonts-victor-mono, nerd-fonts-fira-code (paquetes individuales)
       # - o usar nerd-fonts con override
-      nerd-fonts-victor-mono
-      nerd-fonts-fira-code
+      #nerd-fonts-victor-mono
+     # nerd-fonts-fira-code
     ];
     
     # Configuración de fontconfig (opcional)
