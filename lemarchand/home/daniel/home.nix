@@ -132,16 +132,16 @@ in
       end
     '';
     interactiveShellInit = ''
-        set -g fish_greeting ""
-        set -gx EDITOR nvim
-      '';
-      loginShellInit = ''
-        # Iniciar Hyprland automáticamente si estamos en TTY1 y no hay sesión gráfica activa
-        if test (tty) = "/dev/tty1"; and test -z "$WAYLAND_DISPLAY"; and test -z "$DISPLAY"
-          exec ${unstable.hyprland}/bin/Hyprland
-        end
-      '';
-    };
+      set -g fish_greeting ""
+      set -gx EDITOR nvim
+    '';
+    loginShellInit = ''
+      # Iniciar Hyprland automáticamente si estamos en TTY1 y no hay sesión gráfica activa
+      if test (tty) = "/dev/tty1"; and test -z "$WAYLAND_DISPLAY"; and test -z "$DISPLAY"
+        exec ${unstable.hyprland}/bin/Hyprland
+      end
+    '';
+  };
 
   # Instalar Fisher y plugins populares (usa estándar XDG)
   home.activation.installFisher = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

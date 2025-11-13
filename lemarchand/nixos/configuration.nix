@@ -343,7 +343,11 @@ in
     extraPackages = with pkgs; [ amdvlk ];
     extraPackages32 = with pkgs.pkgsi686Linux; [ driversi686Linux.amdvlk ];
   };
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  
+  # Wayland puro con XWayland para compatibilidad
+  # XWayland se habilita automáticamente cuando se usa un compositor Wayland como Hyprland
+  # No necesitamos services.xserver.videoDrivers ya que es específico de X11 puro
+  # XWayland permite ejecutar aplicaciones X11 dentro de Wayland de forma transparente
   boot.kernel.sysctl = {
     # Optimizaciones de memoria para Ryzen 9 6900HX
     "vm.dirty_ratio" = 10;
@@ -434,6 +438,10 @@ in
 
     # Boot splash
     plymouth  # Boot splash screen con logo
+
+    # Verificar que las Nerd Fonts se instalaron correctamente
+    # Puedes verificar con: fc-list | grep -i victor
+    # Debería mostrar "VictorMono Nerd Font" si se instaló correctamente
   ];
 
   #################################################################

@@ -9,11 +9,33 @@
 - ✅ **Btrfs optimizado** (zstd:3, ssd_spread, commit=120, optimizado para Ryzen 9 6900HX + Samsung NVMe)
 - ✅ **Entorno Omarchy** (Hyprland + Waybar + Mako + Swww)
 - ✅ **Wallpapers dinámicos** (cambio por hora del día o aleatorio)
-- ✅ **Terminal Ghostty** (Victor Mono Nerd Italic)
+- ✅ **Terminal Ghostty** (Victor Mono Nerd Font)
 - ✅ **Gestor de versiones mise** (rtx)
 - ✅ **Herramientas modernas** (eza, bat, fd, ripgrep, fzf, zoxide)
 - ✅ **Steam + Steam Controller** listos para usar
 - ✅ **Login y sudo protegidos** por la misma llave U2F
+
+---
+
+## Verificación de Fuentes
+
+Después de instalar el sistema, verifica que las fuentes Nerd Fonts se instalaron correctamente:
+
+```bash
+# Verificar que Victor Mono Nerd Font está disponible
+fc-list | grep -i "victor.*mono.*nerd"
+
+# Debería mostrar algo como:
+# VictorMono Nerd Font:style=Bold Italic
+# VictorMono Nerd Font:style=Bold
+# VictorMono Nerd Font:style=Italic
+# VictorMono Nerd Font:style=Regular
+
+# Verificar Fira Code Nerd Font
+fc-list | grep -i "fira.*code.*nerd"
+```
+
+Si no aparecen las fuentes, puedes reinstalar el sistema o verificar que `nerd-fonts.victor-mono` y `nerd-fonts.fira-code` estén disponibles en tu versión de nixpkgs.
 
 ---
 
