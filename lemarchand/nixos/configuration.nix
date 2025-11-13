@@ -45,11 +45,14 @@ in
     checkMeta = true;
   };
 
+
   #################################################################
   # 0.1. Fuentes del sistema
   #################################################################
+  # 25.05 (or later)
   fonts.packages = with pkgs; [
-    nerd-fonts-victor-mono  # Fuente monoespaciada con iconos Nerd Fonts
+    nerd-fonts.fira-code
+    nerd-fonts.victor-mono
   ];
 
   #################################################################
