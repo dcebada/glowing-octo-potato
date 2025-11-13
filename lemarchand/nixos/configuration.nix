@@ -21,6 +21,9 @@ let
     "discard=async"
     "commit=120"
   ];
+
+  # Paquete UFW para uso en scripts de activación y servicios
+  ufwPackage = pkgs.ufw;
 in
 {
   imports = [
@@ -425,36 +428,36 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.ufw}/bin/ufw --force enable";
+      ExecStart = "${ufwPackage}/bin/ufw --force enable";
     };
   };
 
   # Configurar UFW al activar el sistema
   system.activationScripts.ufw = ''
     # Configurar políticas por defecto
-    ${pkgs.ufw}/bin/ufw --force reset
-    ${pkgs.ufw}/bin/ufw default deny incoming
-    ${pkgs.ufw}/bin/ufw default allow outgoing
-    ${pkgs.ufw}/bin/ufw default deny routed
+    ${ufwPackage}/bin/ufw --force reset
+    ${ufwPackage}/bin/ufw default deny incoming
+    ${ufwPackage}/bin/ufw default allow outgoing
+    ${ufwPackage}/bin/ufw default deny routed
 
     # Permitir CUPS (impresión) desde localhost
-    ${pkgs.ufw}/bin/ufw allow from 127.0.0.1 to any port 631 proto tcp
-    ${pkgs.ufw}/bin/ufw allow from 127.0.0.1 to any port 631 proto udp
+    ${ufwPackage}/bin/ufw allow from 127.0.0.1 to any port 631 proto tcp
+    ${ufwPackage}/bin/ufw allow from 127.0.0.1 to any port 631 proto udp
 
     # Permitir CUPS desde red local
-    ${pkgs.ufw}/bin/ufw allow from 192.168.0.0/16 to any port 631 proto tcp
-    ${pkgs.ufw}/bin/ufw allow from 10.0.0.0/8 to any port 631 proto tcp
+    ${ufwPackage}/bin/ufw allow from 192.168.0.0/16 to any port 631 proto tcp
+    ${ufwPackage}/bin/ufw allow from 10.0.0.0/8 to any port 631 proto tcp
 
     # Permitir Steam Remote Play
-    ${pkgs.ufw}/bin/ufw allow 27036/udp
-    ${pkgs.ufw}/bin/ufw allow 27036/tcp
+    ${ufwPackage}/bin/ufw allow 27036/udp
+    ${ufwPackage}/bin/ufw allow 27036/tcp
 
     # Permitir Steam Link
-    ${pkgs.ufw}/bin/ufw allow 27031/udp
-    ${pkgs.ufw}/bin/ufw allow 27031/tcp
+    ${ufwPackage}/bin/ufw allow 27031/udp
+    ${ufwPackage}/bin/ufw allow 27031/tcp
 
     # Habilitar UFW
-    ${pkgs.ufw}/bin/ufw --force enable
+    ${ufwPackage}/bin/ufw --force enable
   '';
 
   #################################################################
