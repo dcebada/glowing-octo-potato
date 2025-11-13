@@ -366,12 +366,6 @@ in
       nssmdns = true;
       openFirewall = false;
     };
-    blueman.enable = false;
-    bluetooth = {
-      enable = true;
-      powerOnBoot = true;
-      settings.General.Enable = "Source,Sink,Media,Socket";
-    };
     openssh.enable = false;
     journald.extraConfig = ''
       SystemMaxUse=500M
@@ -380,6 +374,20 @@ in
     udisks2.enable = true;
   };
   systemd.services.systemd-udev-settle.enable = false;
+
+  #################################################################
+  # 12.1. Bluetooth
+  #################################################################
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        Enable = "Source,Sink,Media,Socket";
+      };
+    };
+  };
+  services.blueman.enable = false;
 
   #################################################################
   # 13. UFW (Uncomplicated Firewall)
