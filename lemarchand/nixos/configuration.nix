@@ -180,7 +180,7 @@ in
       "games"
       "plugdev"
     ];
-    shell = pkgs.fish;
+    # Shell gestionado por Home Manager (programs.fish.enable = true)
     # Autologin habilitado (se inicia automáticamente en TTY1)
   };
 
