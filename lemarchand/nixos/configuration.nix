@@ -32,6 +32,9 @@
     "transparent_hugepage=madvise"
     "nvme_core.default_ps_max_latency_us=0"
     "rcu_nocbs=0-15"
+    # Optimizaciones adicionales para NVMe Samsung
+    "nvme_core.io_timeout=4294967295"
+    "nvme_core.max_retries=10"
   ];
 
   boot.initrd.availableKernelModules = [
@@ -72,15 +75,27 @@
   };
 
   #################################################################
-  # 3. Sistema de archivos Btrfs
+  # 3. Sistema de archivos Btrfs (optimizado para Ryzen 9 6900HX + Samsung NVMe)
   #################################################################
+  # Opciones generales optimizadas para SSD NVMe rápido y CPU potente
   btrfsOptions = [
-    "compress=zstd:1"
+    "compress=zstd:3"  # Nivel 3: mejor compresión, Ryzen 9 puede manejarlo sin problemas
+    "ssd_spread"  # Optimización específica para SSD
+    "noatime"  # No actualizar tiempos de acceso (reduce escrituras)
+    "nodiratime"  # No actualizar tiempos de acceso en directorios
+    "space_cache=v2"  # Cache de espacio v2 (más eficiente)
+    "discard=async"  # TRIM asíncrono para NVMe (mejor rendimiento)
+    "commit=120"  # Commit cada 120 segundos (reduce I/O frecuente en NVMe rápido)
+  ];
+
+  # Opciones para /nix (sin compresión, ya que Nix store está comprimido)
+  btrfsNixOptions = [
     "ssd_spread"
     "noatime"
+    "nodiratime"
     "space_cache=v2"
-    "autodefrag"
     "discard=async"
+    "commit=120"
   ];
 
   fileSystems."/" = {
@@ -98,7 +113,7 @@
   fileSystems."/nix" = {
     device = "/dev/mapper/cryptroot";
     fsType = "btrfs";
-    options = [ "subvol=@nix" "ssd_spread" "noatime" "space_cache=v2" ];
+    options = [ "subvol=@nix" ] ++ btrfsNixOptions;
   };
 
   fileSystems."/var/log" = {
@@ -114,12 +129,12 @@
 
   services.fstrim = {
     enable = true;
-    interval = "daily";
+    interval = "weekly";  # NVMe no necesita TRIM tan frecuente
   };
 
   services.btrfs.autoScrub = {
     enable = true;
-    interval = "weekly";
+    interval = "monthly";  # Scrub mensual es suficiente para SSD NVMe moderno
     fileSystems = [ "/" ];
   };
 
@@ -152,8 +167,7 @@
       "lp"
       "scanner"
       "bluetooth"
-      "docker"
-      "libvirtd"
+      "games"
       "plugdev"
     ];
     shell = pkgs.fish;
@@ -170,15 +184,15 @@
     extraCompatPackages = with pkgs; [ driversi686Linux.amdvlk ];
   };
   services.udev.extraRules = ''
-    # Steam Controller
-    SUBSYSTEM=="usb", ATTR{idVendor}=="28de", ATTR{idProduct}=="1102", MODE="0666"
-    KERNEL=="uinput", MODE="0660", GROUP="users", OPTIONS+="static_node=uinput"
-    KERNEL=="xpad", MODE="0666"
-    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0666"
+    # Steam Controller (permisos restringidos al grupo games)
+    SUBSYSTEM=="usb", ATTR{idVendor}=="28de", ATTR{idProduct}=="1102", MODE="0664", GROUP="games"
+    KERNEL=="uinput", MODE="0660", GROUP="games", OPTIONS+="static_node=uinput"
+    KERNEL=="xpad", MODE="0664", GROUP="games"
+    KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0664", GROUP="games"
     
-    # Cámara web Logitech (USB Video Class)
-    SUBSYSTEM=="video4linux", ATTR{idVendor}=="046d", MODE="0666"
-    KERNEL=="video[0-9]*", ATTR{idVendor}=="046d", MODE="0666"
+    # Cámara web Logitech (permisos restringidos al grupo video)
+    SUBSYSTEM=="video4linux", ATTR{idVendor}=="046d", MODE="0664", GROUP="video"
+    KERNEL=="video[0-9]*", ATTR{idVendor}=="046d", MODE="0664", GROUP="video"
   '';
   environment.sessionVariables = {
     AMD_VULKAN_ICD = "RADV";
@@ -191,13 +205,7 @@
   networking = {
     hostName = "lemarchand";
     networkmanager.enable = true;
-    firewall.enable = true;
-    firewall.allowedTCPPorts = [
-      631  # CUPS (impresión)
-    ];
-    firewall.allowedUDPPorts = [
-      631  # CUPS (impresión)
-    ];
+    firewall.enable = false;
   };
 
   #################################################################
@@ -226,8 +234,15 @@
   };
   services.xserver.videoDrivers = [ "amdgpu" ];
   boot.kernel.sysctl = {
+    # Optimizaciones de memoria para Ryzen 9 6900HX
     "vm.dirty_ratio" = 10;
     "vm.dirty_background_ratio" = 5;
+    # Optimizaciones para Btrfs y NVMe
+    "vm.swappiness" = 1;  # Reducir swap (SSD NVMe rápido)
+    "vm.vfs_cache_pressure" = 50;  # Cache de VFS balanceado
+    # Optimizaciones de I/O para NVMe
+    "vm.dirty_writeback_centisecs" = 1500;  # 15 segundos (mejor para NVMe)
+    "vm.dirty_expire_centisecs" = 3000;  # 30 segundos
   };
 
   #################################################################
@@ -291,6 +306,9 @@
     ntfs3g  # NTFS (compatible con Windows)
     exfatprogs  # exFAT (compatible con macOS y Windows)
     fuse  # Sistema de archivos en espacio de usuario
+
+    # Firewall
+    ufw  # Uncomplicated Firewall
   ];
 
   #################################################################
@@ -304,7 +322,7 @@
     avahi = {
       enable = true;
       nssmdns = true;
-      openFirewall = true;
+      openFirewall = false;
     };
     blueman.enable = false;
     bluetooth = {
@@ -322,7 +340,49 @@
   systemd.services.systemd-udev-settle.enable = false;
 
   #################################################################
-  # 13. Nix configuration (optimizado para Ryzen 9 6900HX)
+  # 13. UFW (Uncomplicated Firewall)
+  #################################################################
+  systemd.services.ufw = {
+    description = "Uncomplicated Firewall";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.ufw}/bin/ufw --force enable";
+    };
+  };
+
+  # Configurar UFW al activar el sistema
+  system.activationScripts.ufw = ''
+    # Configurar políticas por defecto
+    ${pkgs.ufw}/bin/ufw --force reset
+    ${pkgs.ufw}/bin/ufw default deny incoming
+    ${pkgs.ufw}/bin/ufw default allow outgoing
+    ${pkgs.ufw}/bin/ufw default deny routed
+
+    # Permitir CUPS (impresión) desde localhost
+    ${pkgs.ufw}/bin/ufw allow from 127.0.0.1 to any port 631 proto tcp
+    ${pkgs.ufw}/bin/ufw allow from 127.0.0.1 to any port 631 proto udp
+
+    # Permitir CUPS desde red local
+    ${pkgs.ufw}/bin/ufw allow from 192.168.0.0/16 to any port 631 proto tcp
+    ${pkgs.ufw}/bin/ufw allow from 10.0.0.0/8 to any port 631 proto tcp
+
+    # Permitir Steam Remote Play
+    ${pkgs.ufw}/bin/ufw allow 27036/udp
+    ${pkgs.ufw}/bin/ufw allow 27036/tcp
+
+    # Permitir Steam Link
+    ${pkgs.ufw}/bin/ufw allow 27031/udp
+    ${pkgs.ufw}/bin/ufw allow 27031/tcp
+
+    # Habilitar UFW
+    ${pkgs.ufw}/bin/ufw --force enable
+  '';
+
+  #################################################################
+  # 14. Nix configuration (optimizado para Ryzen 9 6900HX)
   #################################################################
   nix = {
     settings = {

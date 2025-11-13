@@ -6,7 +6,7 @@
 
 - ✅ **Cifrado completo LUKS 2** con desbloqueo mediante Google Titan U2F
 - ✅ **Limine bootloader** (ligero y compatible con LUKS 2)
-- ✅ **Btrfs optimizado** (compress-zstd, ssd_spread, snapshots automáticos)
+- ✅ **Btrfs optimizado** (zstd:3, ssd_spread, commit=120, optimizado para Ryzen 9 6900HX + Samsung NVMe)
 - ✅ **Entorno Omarchy** (Hyprland + Waybar + Mako + Swww)
 - ✅ **Wallpapers dinámicos** (cambio por hora del día o aleatorio)
 - ✅ **Terminal Ghostty** (Victor Mono Nerd Italic)
@@ -589,6 +589,107 @@ sudo mount -t ntfs-3g /dev/sdX1 /mnt/ntfs
 sudo mount -t exfat /dev/sdX1 /mnt/exfat
 
 # Los dispositivos USB se montan automáticamente en /run/media/daniel/
+```
+
+---
+
+## 🔥 Firewall (UFW)
+
+El sistema utiliza UFW (Uncomplicated Firewall) como firewall principal. La configuración por defecto es:
+
+- **Tráfico entrante**: Denegado por defecto
+- **Tráfico saliente**: Permitido por defecto
+- **Puertos abiertos**:
+  - `631/tcp` y `631/udp` - CUPS (impresión)
+  - `27036/tcp` y `27036/udp` - Steam Remote Play
+  - `27031/tcp` y `27031/udp` - Steam Link
+
+**Comandos útiles de UFW:**
+
+```bash
+# Ver estado del firewall
+sudo ufw status verbose
+
+# Ver reglas numeradas
+sudo ufw status numbered
+
+# Permitir un puerto específico
+sudo ufw allow 8080/tcp
+
+# Permitir desde una IP específica
+sudo ufw allow from 192.168.1.100
+
+# Denegar un puerto
+sudo ufw deny 23/tcp
+
+# Eliminar una regla
+sudo ufw delete <número>
+
+# Recargar reglas
+sudo ufw reload
+
+# Ver logs
+sudo ufw logging on
+sudo tail -f /var/log/ufw.log
+```
+
+**Nota:** Si necesitas abrir puertos adicionales para Steam Remote Play o servidores dedicados, puedes hacerlo manualmente con `sudo ufw allow <puerto>/<protocolo>` o editar la configuración en `nixos/configuration.nix`.
+
+---
+
+## 💾 Optimizaciones de Btrfs y NVMe
+
+La configuración de Btrfs está optimizada específicamente para:
+- **AMD Ryzen 9 6900HX**: Compresión zstd nivel 3 (aprovecha la potencia del CPU)
+- **Samsung NVMe PCIe 4.0**: Opciones específicas para SSD NVMe rápido
+
+### Opciones de montaje Btrfs
+
+**Subvolúmenes generales** (`/`, `/home`, `/var/log`):
+- `compress=zstd:3` - Compresión nivel 3 (balance entre espacio y rendimiento)
+- `ssd_spread` - Optimización para SSD
+- `noatime` y `nodiratime` - Reduce escrituras innecesarias
+- `space_cache=v2` - Cache de espacio eficiente
+- `discard=async` - TRIM asíncrono para NVMe
+- `commit=120` - Commit cada 120 segundos (reduce I/O frecuente)
+
+**Subvolumen `/nix`** (sin compresión):
+- Sin compresión (Nix store ya está comprimido)
+- Resto de opciones iguales
+
+### Optimizaciones del kernel
+
+**Parámetros NVMe:**
+- `nvme_core.default_ps_max_latency_us=0` - Desactivar estados de bajo consumo
+- `nvme_core.io_timeout=4294967295` - Timeout extendido
+- `nvme_core.max_retries=10` - Reintentos para mayor estabilidad
+
+**Parámetros sysctl:**
+- `vm.swappiness=1` - Reducir uso de swap (SSD NVMe rápido)
+- `vm.vfs_cache_pressure=50` - Cache de VFS balanceado
+- `vm.dirty_writeback_centisecs=1500` - Writeback cada 15 segundos
+- `vm.dirty_expire_centisecs=3000` - Expiración de datos sucios a 30 segundos
+
+### Mantenimiento automático
+
+- **fstrim**: Semanal (NVMe no necesita TRIM tan frecuente)
+- **btrfs scrub**: Mensual (suficiente para SSD NVMe moderno)
+
+### Verificar optimizaciones
+
+```bash
+# Ver opciones de montaje actuales
+findmnt -t btrfs -o TARGET,OPTIONS
+
+# Verificar compresión
+sudo btrfs filesystem show
+sudo btrfs filesystem usage /
+
+# Verificar estado de scrub
+sudo btrfs scrub status /
+
+# Verificar parámetros NVMe
+cat /sys/module/nvme_core/parameters/default_ps_max_latency_us
 ```
 
 ---
