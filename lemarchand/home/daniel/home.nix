@@ -258,11 +258,12 @@ EOF
   #################################################################
   # 7. Servicios de usuario
   #################################################################
-  # Nota: PipeWire está configurado como servicio del sistema en nixos/configuration.nix
-  # No necesita estar aquí como servicio de usuario
+  # Nota: 
+  # - PipeWire está configurado como servicio del sistema en nixos/configuration.nix
+  # - swww se ejecuta directamente desde Hyprland (exec-once = swww init)
+  # Solo mako es un servicio de usuario válido en Home Manager
   services = {
     mako.enable = true;
-    swww.enable = true;
   };
 
   #################################################################
