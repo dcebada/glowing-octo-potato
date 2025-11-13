@@ -4,3 +4,19 @@ result-*
 
 # Ignore automatically generated direnv output
 .direnv
+
+# Ignore sensitive files
+.env
+*.local
+secrets/
+*.key
+*.pem
+*.p12
+*.jks
+
+# Ignore wallpaper images (keep structure, not files)
+lemarchand/home/daniel/wallpapers/*.jpg
+lemarchand/home/daniel/wallpapers/*.png
+lemarchand/home/daniel/wallpapers/*.jpeg
+!lemarchand/home/daniel/wallpapers/.gitkeep
+!lemarchand/home/daniel/wallpapers/README.md

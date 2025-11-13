@@ -1,0 +1,8 @@
+font = "VictorMono Nerd Font Italic 13"
+cursor_style = "beam"
+background = "#1e1e2e"
+foreground = "#cdd6f4"
+opacity = 0.95
+scrollback_lines = 8000
+enable_ligatures = true
+true_color = true

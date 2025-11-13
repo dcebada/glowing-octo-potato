@@ -1,0 +1,18 @@
+* {
+    font-family: "VictorMono Nerd Font", "Noto Sans", sans-serif;
+    font-size: 13px;
+    color: #cdd6f4;
+  }
+  #waybar {
+    background: #1e1e2e;
+    border-bottom: 2px solid #313244;
+  }
+  #workspaces button {
+    padding: 0 8px;
+    margin: 0 2px;
+    border-radius: 6px;
+  }
+  #workspaces button.active {
+    background: #89b4fa;
+    color: #1e1e2e;
+  }
