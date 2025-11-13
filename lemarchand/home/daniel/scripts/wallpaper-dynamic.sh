@@ -35,7 +35,12 @@ get_wallpaper_by_time() {
     
     # Si el wallpaper específico no existe, usar uno por defecto
     if [ ! -f "$wallpaper" ]; then
-        wallpaper="$WALLPAPER_DIR/default.jpg"
+        if [ -f "$WALLPAPER_DIR/default.jpg" ]; then
+            wallpaper="$WALLPAPER_DIR/default.jpg"
+        else
+            echo "Error: No se encontró wallpaper para la hora actual ni default.jpg" >&2
+            return 1
+        fi
     fi
     
     echo "$wallpaper"
@@ -47,7 +52,12 @@ get_random_wallpaper() {
     readarray -t wallpapers < <(find "$WALLPAPER_DIR" -maxdepth 1 -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" \) 2>/dev/null)
     
     if [ ${#wallpapers[@]} -eq 0 ]; then
-        echo "$WALLPAPER_DIR/default.jpg"
+        if [ -f "$WALLPAPER_DIR/default.jpg" ]; then
+            echo "$WALLPAPER_DIR/default.jpg"
+        else
+            echo "Error: No se encontraron wallpapers en $WALLPAPER_DIR" >&2
+            return 1
+        fi
         return
     fi
     

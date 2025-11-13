@@ -111,8 +111,8 @@ in
       cat = "bat";
       find = "fd";
       grep = "rg";
-      rebuild = "sudo nixos-rebuild switch --flake $HOME/glowing-octo-potato/lemarchand#lemarchand";
-      update = "cd $HOME/glowing-octo-potato/lemarchand && nix flake update";
+      rebuild = "sudo nixos-rebuild switch --flake ~/glowing-octo-potato/lemarchand#lemarchand";
+      update = "cd ~/glowing-octo-potato/lemarchand && nix flake update";
       screenshot = "grim -g (slurp) ~/Pictures/screenshot-(date +%Y%m%d-%H%M%S).png";
       screenshot-full = "grim ~/Pictures/screenshot-(date +%Y%m%d-%H%M%S).png";
       audio = "pulsemixer";
@@ -263,15 +263,6 @@ EOF
     mako.enable = true;
     swww.enable = true;
   };
-
-  #################################################################
-  # 11. Autostart de Hyprland
-  #################################################################
-  # Iniciar Hyprland automáticamente al iniciar sesión
-  # Esto se hace mediante un script en .xprofile o .zprofile
-  # pero en NixOS con autologin, se puede usar systemd user service
-  # Nota: Con autologin configurado, Hyprland se iniciará automáticamente
-  # desde el archivo .zprofile o .bash_profile del usuario
 
   #################################################################
   # 8. Git

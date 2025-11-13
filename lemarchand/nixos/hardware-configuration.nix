@@ -1,11 +1,17 @@
 # Este archivo se genera automáticamente con:
-# nixos-generate-config --show-hardware-config > hardware-configuration.nix
+#   nixos-generate-config --show-hardware-config > hardware-configuration.nix
 #
 # O durante la instalación con:
-# nixos-generate-config --root /mnt
+#   nixos-generate-config --root /mnt
 #
-# Esta es una plantilla básica. Debes ejecutar el comando anterior
+# IMPORTANTE: Esta es una plantilla básica. Debes ejecutar el comando anterior
 # en tu máquina para obtener la configuración específica de tu hardware.
+#
+# Después de generar el archivo, cópialo al repositorio:
+#   sudo cp /mnt/etc/nixos/hardware-configuration.nix nixos/hardware-configuration.nix
+#
+# Nota: Los parámetros del kernel específicos de AMD (amd_pstate=active, etc.)
+# están configurados en nixos/configuration.nix, no aquí.
 
 { config, lib, pkgs, modulesPath, ... }:
 

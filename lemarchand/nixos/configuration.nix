@@ -359,19 +359,6 @@
   systemd.services.systemd-udev-settle.enable = false;
 
   #################################################################
-  # 15. Autologin y Plymouth (boot splash)
-  #################################################################
-  # Autologin para usuario daniel en TTY1
-  services.getty.autologinUser = "daniel";
-
-  # Plymouth boot splash con logo
-  boot.plymouth = {
-    enable = true;
-    theme = "bgrt";  # Usa el logo del firmware (si está disponible)
-    # Alternativamente, puedes usar "spinner" o crear un tema personalizado
-  };
-
-  #################################################################
   # 13. UFW (Uncomplicated Firewall)
   #################################################################
   systemd.services.ufw = {
@@ -414,7 +401,20 @@
   '';
 
   #################################################################
-  # 14. Nix configuration (optimizado para Ryzen 9 6900HX)
+  # 14. Autologin y Plymouth (boot splash)
+  #################################################################
+  # Autologin para usuario daniel en TTY1
+  services.getty.autologinUser = "daniel";
+
+  # Plymouth boot splash con logo
+  boot.plymouth = {
+    enable = true;
+    theme = "bgrt";  # Usa el logo del firmware (si está disponible)
+    # Alternativamente, puedes usar "spinner" o crear un tema personalizado
+  };
+
+  #################################################################
+  # 15. Nix configuration (optimizado para Ryzen 9 6900HX)
   #################################################################
   nix = {
     settings = {
@@ -444,7 +444,7 @@
   };
 
   #################################################################
-  # 14. Estado del sistema
+  # 16. Estado del sistema
   #################################################################
   system.stateVersion = "24.05";
 }
