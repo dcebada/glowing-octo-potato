@@ -50,6 +50,26 @@ Si no aparecen las fuentes, puedes reinstalar el sistema o verificar que `nerd-f
 
 ## 🚀 Instalación Paso a Paso
 
+### Resumen del Proceso
+
+El proceso de instalación consta de los siguientes pasos principales:
+
+1. **Preparar entorno** - Conectar a Internet
+2. **Particionar disco** - Crear particiones EFI y LUKS
+3. **Configurar LUKS** - Crear y abrir contenedor cifrado
+4. **Configurar Btrfs** - Formatear y crear subvolúmenes
+5. **Montar sistema** - Montar todos los subvolúmenes y EFI
+6. **Clonar repositorio** - Obtener la configuración del sistema
+7. **Configurar UUIDs** - ⭐ **Usar `install-helper.sh` para detectar UUIDs automáticamente**
+8. **Generar hardware-config** - Detectar hardware específico
+9. **Verificar configuración** - Dry-run antes de instalar
+10. **Instalar NixOS** - Instalar el sistema completo
+11-16. **Post-instalación** - Configurar U2F, wallpapers, etc.
+
+**💡 Tip:** El script `install-helper.sh` (paso 7) es tu mejor amigo. Te ayudará a detectar UUIDs y verificar que todo esté correcto antes de instalar.
+
+---
+
 ### 1. Preparar el Entorno de Instalación
 
 Arranca desde el USB de NixOS y ejecuta:
@@ -121,39 +141,65 @@ sudo umount /mnt
 
 ### 5. Montar el Sistema de Archivos
 
+**IMPORTANTE:** Monta todos los subvolúmenes y la partición EFI antes de continuar. El script de ayuda verificará que todo esté montado correctamente.
+
 ```bash
-# Montar subvolúmenes
+# Montar subvolumen raíz (@)
 sudo mount -o subvol=@,compress=zstd,ssd_spread,noatime,space_cache=v2 /dev/mapper/cryptroot /mnt
+
+# Crear directorios necesarios
 sudo mkdir -p /mnt/{boot/efi,home,nix,var/log,.snapshots}
 
+# Montar subvolúmenes adicionales
 sudo mount -o subvol=@home,compress=zstd,ssd_spread,noatime,space_cache=v2 /dev/mapper/cryptroot /mnt/home
 sudo mount -o subvol=@nix,compress=zstd,ssd_spread,noatime,space_cache=v2 /dev/mapper/cryptroot /mnt/nix
 sudo mount -o subvol=@var-log,compress=zstd,ssd_spread,noatime,space_cache=v2 /dev/mapper/cryptroot /mnt/var/log
 sudo mount -o subvol=@snapshots,compress=zstd,ssd_spread,noatime,space_cache=v2 /dev/mapper/cryptroot /mnt/.snapshots
 
-# Montar partición EFI (reemplaza UUID-EFI con el UUID real)
+# Montar partición EFI
+# Primero obtén el UUID de la partición EFI:
+sudo blkid /dev/nvme0n1p1
+# Luego monta usando el UUID (reemplaza UUID-EFI con el UUID real):
 sudo mount /dev/disk/by-uuid/UUID-EFI /mnt/boot/efi
+
+# Verificar que todo está montado correctamente
+mountpoint /mnt && echo "✓ Sistema montado correctamente"
+mountpoint /mnt/boot/efi && echo "✓ EFI montado correctamente"
+mountpoint /mnt/home && echo "✓ Home montado correctamente"
 ```
 
+**Nota:** Después de montar todo, puedes ejecutar el script `install-helper.sh` (paso 7) para verificar que todo está correcto y obtener los UUIDs automáticamente.
+
 ### 6. Clonar el Repositorio
+
+**IMPORTANTE:** Clona el repositorio dentro del sistema montado para que la configuración esté disponible durante la instalación.
 
 ```bash
 # Instalar git si no está disponible
 nix-env -iA nixos.git
 
-# Clonar el repositorio
+# Clonar el repositorio dentro del sistema montado
 cd /mnt
 sudo git clone https://github.com/tu-usuario/glowing-octo-potato.git
 cd glowing-octo-potato/lemarchand
+
+# Verificar que estás en el directorio correcto
+pwd
+# Debería mostrar: /mnt/glowing-octo-potato/lemarchand
+
+# Verificar que el script de ayuda existe
+ls -lh install-helper.sh
 ```
 
-### 7. Configurar UUIDs
+**Nota:** Asegúrate de clonar el repositorio completo, no solo una parte. El script `install-helper.sh` debe estar en `lemarchand/install-helper.sh`.
 
-Los UUIDs ahora se configuran como parámetros del flake. Tienes dos opciones:
+### 7. Configurar UUIDs y Verificar Instalación
 
-**Opción A: Usar el script de ayuda (Recomendado)**
+**IMPORTANTE:** Antes de continuar, debes configurar los UUIDs de las particiones LUKS y EFI. El script `install-helper.sh` te ayudará a detectarlos automáticamente y verificar que todo esté correcto.
 
-El script `install-helper.sh` detecta automáticamente los UUIDs y verifica el estado de la instalación:
+#### Paso 7.1: Ejecutar el Script de Ayuda
+
+El script `install-helper.sh` detecta automáticamente los UUIDs y verifica el estado completo de tu instalación:
 
 ```bash
 # Desde el directorio del repositorio
@@ -163,19 +209,53 @@ cd /mnt/glowing-octo-potato/lemarchand
 sudo bash install-helper.sh
 ```
 
-El script mostrará:
-- ✅ UUIDs detectados automáticamente (LUKS y EFI)
-- ✅ Estado de los montajes
-- ✅ Estructura de directorios
-- ✅ Subvolúmenes Btrfs
-- ✅ Comandos listos para copiar y pegar
+El script realizará las siguientes verificaciones y mostrará:
 
-**Luego, exporta las variables de entorno con los UUIDs detectados:**
+1. **Dispositivos de almacenamiento** - Lista todos los dispositivos disponibles
+2. **UUIDs de particiones EFI** - Detecta automáticamente la partición EFI y su UUID
+3. **Dispositivos LUKS abiertos** - Muestra los dispositivos LUKS actualmente desbloqueados
+4. **Particiones LUKS sin abrir** - Detecta particiones LUKS cifradas y sus UUIDs
+5. **Montajes actuales** - Verifica que el sistema esté montado correctamente en `/mnt`
+6. **Estructura de directorios** - Comprueba que los directorios necesarios existan
+7. **Subvolúmenes Btrfs** - Lista los subvolúmenes Btrfs si están disponibles
+8. **Parámetros configurables** - Muestra el estado de las variables de entorno y UUIDs detectados
+
+**El script mostrará comandos listos para copiar y pegar** con los UUIDs detectados.
+
+#### Paso 7.2: Exportar Variables de Entorno
+
+Después de ejecutar el script, copia los UUIDs que detectó y expórtalos como variables de entorno:
 
 ```bash
-# El script mostrará los UUIDs detectados, úsalos así:
-export LUKS_UUID="uuid-detectado-por-el-script"
-export EFI_UUID="uuid-detectado-por-el-script"
+# El script mostrará los UUIDs detectados en la sección 8
+# Copia los UUIDs que aparecen después de "→ UUID detectado:"
+
+export LUKS_UUID="uuid-luks-detectado-por-el-script"
+export EFI_UUID="uuid-efi-detectado-por-el-script"
+export GIT_EMAIL="tu-email@ejemplo.com"
+
+# Verificar que se configuraron correctamente
+echo "LUKS UUID: $LUKS_UUID"
+echo "EFI UUID: $EFI_UUID"
+echo "GIT EMAIL: $GIT_EMAIL"
+```
+
+**Nota sobre GIT_EMAIL:** Configura tu email real para los commits de Git. Si no lo configuras, se usará el valor por defecto `daniel@example.com`.
+
+#### Alternativas para Configurar UUIDs
+
+Si prefieres no usar el script de ayuda, puedes configurar los UUIDs manualmente:
+
+**Opción A: Variables de entorno manuales**
+
+```bash
+# Obtener UUIDs manualmente
+LUKS_UUID=$(sudo blkid -s UUID -o value /dev/nvme0n1p2)
+EFI_UUID=$(sudo blkid -s UUID -o value /dev/nvme0n1p1)
+
+# Exportar variables
+export LUKS_UUID
+export EFI_UUID
 export GIT_EMAIL="tu-email@ejemplo.com"
 
 # Verificar
@@ -183,27 +263,9 @@ echo "LUKS UUID: $LUKS_UUID"
 echo "EFI UUID: $EFI_UUID"
 ```
 
-**Opción B: Variables de entorno manuales**
+**Opción B: Editar flake.nix directamente**
 
-Si prefieres obtener los UUIDs manualmente:
-
-```bash
-# Obtener UUIDs
-LUKS_UUID=$(sudo blkid -s UUID -o value /dev/nvme0n1p2)
-EFI_UUID=$(sudo blkid -s UUID -o value /dev/nvme0n1p1)
-
-# Exportar variables
-export LUKS_UUID
-export EFI_UUID
-
-# Verificar
-echo "LUKS UUID: $LUKS_UUID"
-echo "EFI UUID: $EFI_UUID"
-```
-
-**Opción C: Editar flake.nix directamente**
-
-Edita `flake.nix` y cambia los valores por defecto en las líneas 33-34:
+Edita `flake.nix` y cambia los valores por defecto en las líneas 28-29:
 
 ```nix
 luksUuid = if luksUuidEnv != "" then luksUuidEnv else "TU-UUID-LUKS-AQUI";
@@ -212,61 +274,111 @@ efiUuid = if efiUuidEnv != "" then efiUuidEnv else "TU-UUID-EFI-AQUI";
 
 Reemplaza `REPLACE-WITH-LUKS-UUID` y `REPLACE-WITH-EFI-UUID` con tus UUIDs reales.
 
-**Opción D: Usar archivo .env**
+**Opción C: Usar archivo .env**
 
 ```bash
 # Crear archivo .env
 cat > .env << EOF
-LUKS_UUID=tu-uuid-luks-aqui
-EFI_UUID=tu-uuid-efi-aqui
+export LUKS_UUID="tu-uuid-luks-aqui"
+export EFI_UUID="tu-uuid-efi-aqui"
+export GIT_EMAIL="tu-email@ejemplo.com"
 EOF
 
 # Cargar variables
 source .env
 
-# Instalar
-sudo nixos-install --flake .#lemarchand --root /mnt
+# Verificar
+echo "LUKS UUID: $LUKS_UUID"
+echo "EFI UUID: $EFI_UUID"
 ```
 
-**Verificación de UUIDs:**
+#### Verificación de UUIDs
+
+Antes de continuar con la instalación, verifica que los UUIDs estén correctos:
 
 ```bash
-# Ver la configuración evaluada
-sudo nixos-rebuild switch --flake .#lemarchand --dry-run
+# Verificar que las variables están configuradas
+env | grep -E "LUKS_UUID|EFI_UUID|GIT_EMAIL"
 
-# O verificar en el sistema
-cat /etc/nixos/configuration.nix | grep -A 2 "luks.devices"
+# Verificar que los UUIDs corresponden a las particiones correctas
+sudo blkid | grep -E "$LUKS_UUID|$EFI_UUID"
 ```
 
-**Notas sobre UUIDs:**
+**⚠️ ADVERTENCIA:** Asegúrate de que los UUIDs sean correctos antes de instalar. Si los UUIDs son incorrectos, el sistema no arrancará y tendrás que reinstalar.
+
+**Notas importantes:**
 - Los valores por defecto son `REPLACE-WITH-LUKS-UUID` y `REPLACE-WITH-EFI-UUID` si no se configuran las variables de entorno
 - Las variables de entorno tienen prioridad sobre los valores por defecto en `flake.nix`
-- Asegúrate de que los UUIDs sean correctos antes de instalar, o el sistema no arrancará
+- Las variables de entorno deben estar disponibles en la misma sesión de terminal donde ejecutes `nixos-install`
 
 ### 8. Generar `hardware-configuration.nix`
 
+**IMPORTANTE:** Este paso debe ejecutarse DESPUÉS de haber montado todo el sistema de archivos y ANTES de instalar NixOS.
+
 ```bash
+# Asegúrate de estar en el directorio del repositorio
+cd /mnt/glowing-octo-potato/lemarchand
+
 # Generar configuración de hardware
+# Esto detecta automáticamente tu hardware y genera la configuración base
 sudo nixos-generate-config --root /mnt
 
-# Copiar la configuración generada
+# Copiar la configuración generada al repositorio
 sudo cp /mnt/etc/nixos/hardware-configuration.nix nixos/hardware-configuration.nix
+
+# Verificar que se copió correctamente
+ls -lh nixos/hardware-configuration.nix
 ```
 
-### 9. Instalar NixOS
+**Nota:** El archivo `hardware-configuration.nix` contiene la configuración específica de tu hardware (CPU, GPU, dispositivos, etc.). Este archivo se genera automáticamente y debe estar presente en el repositorio.
+
+### 9. Verificar Configuración (Opcional pero Recomendado)
+
+Antes de instalar, puedes verificar que la configuración se evalúa correctamente:
 
 ```bash
+# Verificar que la configuración se puede evaluar (dry-run)
+sudo nixos-install --flake .#lemarchand --root /mnt --dry-run
+
+# Si hay errores, se mostrarán aquí y podrás corregirlos antes de instalar
+```
+
+**Si hay errores:**
+- Verifica que los UUIDs estén correctos: `echo $LUKS_UUID $EFI_UUID`
+- Verifica que `hardware-configuration.nix` existe: `ls nixos/hardware-configuration.nix`
+- Verifica que el flake se puede evaluar: `nix flake check`
+
+### 10. Instalar NixOS
+
+Una vez que todo esté verificado, procede con la instalación:
+
+```bash
+# Asegúrate de estar en el directorio del repositorio
+cd /mnt/glowing-octo-potato/lemarchand
+
+# Verificar que las variables de entorno están configuradas
+echo "LUKS UUID: $LUKS_UUID"
+echo "EFI UUID: $EFI_UUID"
+
 # Construir e instalar el sistema
 sudo nixos-install --flake .#lemarchand --root /mnt
 
 # Durante la instalación, se te pedirá:
-# - Contraseña para el usuario daniel
+# - Contraseña para el usuario daniel (escríbela dos veces)
 # 
 # NOTA: La cuenta root está deshabilitada por seguridad.
 # Solo puedes acceder a privilegios de administrador mediante 'sudo' con tu usuario.
 ```
 
-### 10. Configurar U2F para Desbloqueo del Disco
+**Tiempo estimado:** La instalación puede tardar entre 15-30 minutos dependiendo de tu conexión a Internet y velocidad del disco.
+
+**Si hay errores durante la instalación:**
+- Usa `--show-trace` para más detalles: `sudo nixos-install --flake .#lemarchand --root /mnt --show-trace`
+- Verifica que tienes conexión a Internet
+- Verifica que los UUIDs son correctos
+- Verifica que el sistema está montado correctamente: `mountpoint /mnt`
+
+### 11. Configurar U2F para Desbloqueo del Disco
 
 **IMPORTANTE:** Esto debe hacerse DESPUÉS de la primera instalación y reinicio.
 
@@ -283,7 +395,7 @@ sudo systemd-cryptenroll --fido2-device=auto /dev/nvme0n1p2 --list
 
 **Nota:** Asegúrate de mantener una contraseña de respaldo. Si pierdes la llave U2F, necesitarás la contraseña para acceder.
 
-### 11. Configurar U2F para Login y Sudo
+### 12. Configurar U2F para Login y Sudo
 
 ```bash
 # Instalar herramientas U2F (ya deberían estar instaladas)
@@ -298,7 +410,7 @@ sudo cp ~/.config/Yubico/u2f_keys /etc/u2f_mappings/daniel
 sudo -v  # Debería pedirte que toques la llave U2F
 ```
 
-### 12. Instalar Limine (Opcional)
+### 13. Instalar Limine (Opcional)
 
 Si prefieres usar Limine en lugar de systemd-boot:
 
@@ -316,7 +428,7 @@ sudo efibootmgr -c -d /dev/nvme0n1 -p 1 -L "Limine" -l "\EFI\limine\limine.sys"
 
 **Nota:** La configuración de Limine con LUKS requiere ajustes manuales en `limine.cfg`. Consulta la [documentación de Limine](https://github.com/limine-bootloader/limine) para más detalles.
 
-### 13. Configurar Wallpapers Dinámicos
+### 14. Configurar Wallpapers Dinámicos
 
 El sistema incluye soporte para wallpapers dinámicos que cambian según la hora del día o de forma aleatoria.
 
@@ -364,7 +476,7 @@ Edita `$XDG_CONFIG_HOME/swww/wallpaper-config` para cambiar el modo por defecto:
 
 **Nota:** El sistema cambia automáticamente el wallpaper cada hora cuando está en modo `time`.
 
-### 14. Configurar Autologin y Boot Splash
+### 15. Configurar Autologin y Boot Splash
 
 El sistema está configurado para:
 - **Autologin automático** - El usuario `daniel` inicia sesión automáticamente en TTY1
@@ -373,7 +485,7 @@ El sistema está configurado para:
 
 **Nota:** Si necesitas deshabilitar el autologin por seguridad, edita `nixos/configuration.nix` y comenta la línea `services.getty.autologinUser = "daniel";`
 
-### 15. Reiniciar
+### 16. Reiniciar
 
 ```bash
 sudo reboot
@@ -385,6 +497,25 @@ Al arrancar, deberías poder:
 3. Iniciar sesión automáticamente (autologin)
 4. Hyprland se iniciará automáticamente
 5. Usar `sudo` con tu llave U2F
+
+---
+
+### ✅ Checklist de Verificación Pre-Instalación
+
+Antes de ejecutar `nixos-install`, verifica que has completado todos estos pasos:
+
+- [ ] **Disco particionado** - Tienes partición EFI y partición LUKS creadas
+- [ ] **LUKS configurado** - Contenedor LUKS creado y abierto (`cryptroot`)
+- [ ] **Btrfs formateado** - Sistema de archivos Btrfs creado con subvolúmenes
+- [ ] **Sistema montado** - Todos los subvolúmenes y EFI montados en `/mnt`
+- [ ] **Repositorio clonado** - Repositorio clonado en `/mnt/glowing-octo-potato/lemarchand`
+- [ ] **Script ejecutado** - `install-helper.sh` ejecutado y UUIDs detectados
+- [ ] **Variables exportadas** - `LUKS_UUID`, `EFI_UUID` y `GIT_EMAIL` configuradas
+- [ ] **UUIDs verificados** - UUIDs corresponden a las particiones correctas
+- [ ] **Hardware-config generado** - `hardware-configuration.nix` generado y copiado
+- [ ] **Dry-run exitoso** - `nixos-install --dry-run` se ejecuta sin errores
+
+**Si algún paso falla, revisa la sección correspondiente antes de continuar.**
 
 ---
 

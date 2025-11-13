@@ -31,12 +31,17 @@ echo ""
 
 # Buscar partición EFI (mejorado: múltiples métodos)
 EFI_PART=""
-# Método 1: Buscar por PARTTYPE
-EFI_PART=$(lsblk -o NAME,PARTTYPE,FSTYPE | grep -iE "(c12a732f-f81f-11d2-ba4b-00a0c93ec93b|EFI|vfat)" | head -1 | awk '{print $1}' || true)
+# Método 1: Buscar por PARTTYPE (UUID específico de EFI)
+EFI_PART=$(lsblk -o NAME,PARTTYPE,FSTYPE | grep -i "c12a732f-f81f-11d2-ba4b-00a0c93ec93b" | head -1 | awk '{print $1}' || true)
 
-# Método 2: Buscar por FSTYPE vfat en particiones pequeñas
+# Método 2: Buscar por FSTYPE vfat (solo en particiones, no en discos completos)
 if [ -z "$EFI_PART" ]; then
-    EFI_PART=$(lsblk -o NAME,SIZE,FSTYPE | grep -i "vfat" | awk '{print $1}' | head -1 || true)
+    EFI_PART=$(lsblk -o NAME,TYPE,FSTYPE | grep -E "part.*vfat|vfat.*part" | head -1 | awk '{print $1}' || true)
+fi
+
+# Método 3: Buscar cualquier vfat como último recurso
+if [ -z "$EFI_PART" ]; then
+    EFI_PART=$(lsblk -o NAME,FSTYPE | grep -i "vfat" | awk '{print $1}' | head -1 || true)
 fi
 
 if [ -n "$EFI_PART" ] && [ -e "/dev/$EFI_PART" ]; then
@@ -61,11 +66,14 @@ if [ -z "$LUKS_DEVICES" ]; then
     echo "  Abre tu dispositivo LUKS con: cryptsetup open /dev/nvme0n1p2 cryptroot"
     echo ""
 else
-    for dev in $LUKS_DEVICES; do
-        LUKS_UUID=$(blkid -s UUID -o value /dev/mapper/$dev 2>/dev/null || echo "NO ENCONTRADO")
-        echo -e "${GREEN}Dispositivo LUKS:${NC} /dev/mapper/$dev"
-        echo -e "  UUID: ${GREEN}$LUKS_UUID${NC}"
-    done
+    # Manejar múltiples dispositivos correctamente (por línea)
+    while IFS= read -r dev; do
+        if [ -n "$dev" ] && [ -e "/dev/mapper/$dev" ]; then
+            LUKS_UUID=$(blkid -s UUID -o value "/dev/mapper/$dev" 2>/dev/null || echo "NO ENCONTRADO")
+            echo -e "${GREEN}Dispositivo LUKS:${NC} /dev/mapper/$dev"
+            echo -e "  UUID: ${GREEN}$LUKS_UUID${NC}"
+        fi
+    done < <(echo "$LUKS_DEVICES")
     echo ""
 fi
 
@@ -77,16 +85,19 @@ DETECTED_LUKS_UUID=""
 while IFS= read -r line; do
     part=$(echo "$line" | awk '{print $1}')
     if [ -n "$part" ] && [ -e "/dev/$part" ]; then
-        if cryptsetup isLuks "/dev/$part" 2>/dev/null; then
-            LUKS_PART_UUID=$(blkid -s UUID -o value "/dev/$part" 2>/dev/null || echo "NO ENCONTRADO")
-            PART_SIZE=$(lsblk -o SIZE -n "/dev/$part" 2>/dev/null || echo "N/A")
-            echo -e "${GREEN}Particion LUKS:${NC} /dev/$part (${PART_SIZE})"
-            echo -e "  UUID: ${GREEN}$LUKS_PART_UUID${NC}"
-            echo "  → Configura LUKS_UUID en variables de entorno o flake.nix"
-            echo ""
-            LUKS_FOUND=true
-            if [ -z "$DETECTED_LUKS_UUID" ] && [ "$LUKS_PART_UUID" != "NO ENCONTRADO" ]; then
-                DETECTED_LUKS_UUID="$LUKS_PART_UUID"
+        # Verificar que es una partición (no un disco completo) antes de verificar LUKS
+        if lsblk -o TYPE -n "/dev/$part" 2>/dev/null | grep -qE "^part$"; then
+            if cryptsetup isLuks "/dev/$part" 2>/dev/null; then
+                LUKS_PART_UUID=$(blkid -s UUID -o value "/dev/$part" 2>/dev/null || echo "NO ENCONTRADO")
+                PART_SIZE=$(lsblk -o SIZE -n "/dev/$part" 2>/dev/null || echo "N/A")
+                echo -e "${GREEN}Particion LUKS:${NC} /dev/$part (${PART_SIZE})"
+                echo -e "  UUID: ${GREEN}$LUKS_PART_UUID${NC}"
+                echo "  → Configura LUKS_UUID en variables de entorno o flake.nix"
+                echo ""
+                LUKS_FOUND=true
+                if [ -z "$DETECTED_LUKS_UUID" ] && [ "$LUKS_PART_UUID" != "NO ENCONTRADO" ]; then
+                    DETECTED_LUKS_UUID="$LUKS_PART_UUID"
+                fi
             fi
         fi
     fi
@@ -130,10 +141,17 @@ echo ""
 echo -e "${YELLOW}7. Verificando subvolúmenes Btrfs:${NC}"
 echo ""
 if mountpoint -q /mnt && command -v btrfs &> /dev/null; then
-    ROOT_DEV=$(findmnt -n -o SOURCE /mnt)
+    ROOT_DEV=$(findmnt -n -o SOURCE /mnt 2>/dev/null || echo "")
     if [ -n "$ROOT_DEV" ]; then
-        echo "Subvolúmenes en $ROOT_DEV:"
-        btrfs subvolume list /mnt 2>/dev/null || echo "  No se pudieron listar subvolúmenes"
+        # Verificar que el sistema de archivos es Btrfs
+        if findmnt -n -o FSTYPE /mnt 2>/dev/null | grep -q "btrfs"; then
+            echo "Subvolúmenes en $ROOT_DEV:"
+            btrfs subvolume list /mnt 2>/dev/null || echo "  No se pudieron listar subvolúmenes"
+        else
+            echo "  El sistema de archivos montado en /mnt no es Btrfs"
+        fi
+    else
+        echo "  No se pudo determinar el dispositivo raíz"
     fi
 else
     echo "  No se puede verificar (sistema no montado o btrfs no disponible)"
