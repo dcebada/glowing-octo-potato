@@ -174,7 +174,21 @@
     shell = pkgs.fish;
     # Autologin habilitado (se inicia automáticamente en TTY1)
   };
-  security.sudo.wheelNeedsPassword = true;
+
+  #################################################################
+  # 5.1. Deshabilitar login directo de root
+  #################################################################
+  # Deshabilitar login directo de root (solo acceso mediante sudo)
+  users.users.root = {
+    hashedPassword = "!";  # Deshabilitar contraseña de root
+    shell = "${pkgs.shadow}/bin/nologin";  # Shell que no permite login
+  };
+
+  # Configuración de sudo
+  security.sudo = {
+    enable = true;
+    wheelNeedsPassword = true;  # Requiere contraseña (o U2F) para sudo
+  };
 
   #################################################################
   # 6. Steam y Steam Controller

@@ -204,8 +204,10 @@ sudo cp /mnt/etc/nixos/hardware-configuration.nix nixos/hardware-configuration.n
 sudo nixos-install --flake .#lemarchand --root /mnt
 
 # Durante la instalación, se te pedirá:
-# - Contraseña para el usuario root
 # - Contraseña para el usuario daniel
+# 
+# NOTA: La cuenta root está deshabilitada por seguridad.
+# Solo puedes acceder a privilegios de administrador mediante 'sudo' con tu usuario.
 ```
 
 ### 10. Configurar U2F para Desbloqueo del Disco
@@ -766,17 +768,19 @@ sudo btrfs scrub start /
 
 ## 📝 Notas Importantes
 
-1. **Backup de la llave U2F:** Si pierdes tu Google Titan, necesitarás la contraseña de respaldo para acceder al sistema.
+1. **Cuenta root deshabilitada:** La cuenta root está deshabilitada por seguridad. Solo puedes acceder a privilegios de administrador mediante `sudo` con tu usuario `daniel`. Esto es una buena práctica de seguridad que previene ataques directos a la cuenta root.
 
-2. **UUIDs:** Configura los UUIDs usando variables de entorno (`LUKS_UUID` y `EFI_UUID`) o editando `flake.nix` antes de la instalación. Ver sección "Configurar UUIDs" para más detalles.
+2. **Backup de la llave U2F:** Si pierdes tu Google Titan, necesitarás la contraseña de respaldo para acceder al sistema.
 
-3. **Limine:** La configuración de Limine con LUKS requiere trabajo manual. systemd-boot funciona perfectamente como alternativa.
+3. **UUIDs:** Configura los UUIDs usando variables de entorno (`LUKS_UUID` y `EFI_UUID`) o editando `flake.nix` antes de la instalación. Ver sección "Configurar UUIDs" para más detalles.
 
-4. **Snapshots:** Considera configurar snapshots automáticos con `snapper` o `btrbk` para mayor protección.
+4. **Limine:** La configuración de Limine con LUKS requiere trabajo manual. systemd-boot funciona perfectamente como alternativa.
 
-5. **Zona horaria:** Ajusta `time.timeZone` en `configuration.nix` según tu ubicación.
+5. **Snapshots:** Considera configurar snapshots automáticos con `snapper` o `btrbk` para mayor protección.
 
-6. **LazyVim:** Se instala automáticamente la primera vez que ejecutes `nvim` después de aplicar la configuración de Home Manager.
+6. **Zona horaria:** Ajusta `time.timeZone` en `configuration.nix` según tu ubicación.
+
+7. **LazyVim:** Se instala automáticamente la primera vez que ejecutes `nvim` después de aplicar la configuración de Home Manager.
 
 ---
 
