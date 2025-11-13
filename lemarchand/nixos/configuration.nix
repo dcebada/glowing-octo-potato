@@ -69,12 +69,11 @@ in
       proggyfonts
       
       # Nerd Fonts (con iconos para terminales)
-      # Instalar fuentes Nerd Fonts específicas
-      # Nota: En algunas versiones de nixpkgs, los nombres pueden ser:
-      # - nerd-fonts-victor-mono, nerd-fonts-fira-code (paquetes individuales)
-      # - o usar nerd-fonts con override
-      #nerd-fonts-victor-mono
-     # nerd-fonts-fira-code
+      # Según https://discourse.nixos.org/t/nerdfonts-install-via-flakes-nix-darwin/56696
+      # Los Nerd Fonts ahora están en el namespace nerd-fonts como paquetes individuales
+      # Usar nerd-fonts.<nombre> con guiones y minúsculas
+      nerd-fonts.victor-mono
+      nerd-fonts.fira-code
     ];
     
     # Configuración de fontconfig (opcional)

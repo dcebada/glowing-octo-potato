@@ -129,7 +129,41 @@ cd glowing-octo-potato/lemarchand
 
 Los UUIDs ahora se configuran como parámetros del flake. Tienes dos opciones:
 
-**Opción A: Variables de entorno (Recomendado)**
+**Opción A: Usar el script de ayuda (Recomendado)**
+
+El script `install-helper.sh` detecta automáticamente los UUIDs y verifica el estado de la instalación:
+
+```bash
+# Desde el directorio del repositorio
+cd /mnt/glowing-octo-potato/lemarchand
+
+# Ejecutar el script de ayuda (requiere sudo)
+sudo bash install-helper.sh
+```
+
+El script mostrará:
+- ✅ UUIDs detectados automáticamente (LUKS y EFI)
+- ✅ Estado de los montajes
+- ✅ Estructura de directorios
+- ✅ Subvolúmenes Btrfs
+- ✅ Comandos listos para copiar y pegar
+
+**Luego, exporta las variables de entorno con los UUIDs detectados:**
+
+```bash
+# El script mostrará los UUIDs detectados, úsalos así:
+export LUKS_UUID="uuid-detectado-por-el-script"
+export EFI_UUID="uuid-detectado-por-el-script"
+export GIT_EMAIL="tu-email@ejemplo.com"
+
+# Verificar
+echo "LUKS UUID: $LUKS_UUID"
+echo "EFI UUID: $EFI_UUID"
+```
+
+**Opción B: Variables de entorno manuales**
+
+Si prefieres obtener los UUIDs manualmente:
 
 ```bash
 # Obtener UUIDs
@@ -145,7 +179,7 @@ echo "LUKS UUID: $LUKS_UUID"
 echo "EFI UUID: $EFI_UUID"
 ```
 
-**Opción B: Editar flake.nix directamente**
+**Opción C: Editar flake.nix directamente**
 
 Edita `flake.nix` y cambia los valores por defecto en las líneas 33-34:
 
@@ -156,7 +190,7 @@ efiUuid = if efiUuidEnv != "" then efiUuidEnv else "TU-UUID-EFI-AQUI";
 
 Reemplaza `REPLACE-WITH-LUKS-UUID` y `REPLACE-WITH-EFI-UUID` con tus UUIDs reales.
 
-**Método C: Usar archivo .env**
+**Opción D: Usar archivo .env**
 
 ```bash
 # Crear archivo .env
